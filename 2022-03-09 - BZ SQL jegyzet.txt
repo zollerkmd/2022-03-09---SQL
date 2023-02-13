@@ -1,0 +1,132 @@
+CREATE SCHEMA `targoncaverseny` DEFAULT CHARACTER SET utf8 COLLATE utf8_hungarian_ci ;
+
+CREATE TABLE dolgozok(
+dazon int,
+nev varchar(20) NOT NULL,
+reszleg varchar(5),
+constraint pk_dolgozok primary key (dazon));
+
+CREATE TABLE leadasok(
+sorsz int,
+dolgozo int NOT NULL,
+idopont date NOT NULL,
+mennyiseg int NOT NULL,
+constraint pk_leadasok primary key (sorsz),
+constraint fk_leadasdolgozok foreign key (dolgozo) references dolgozok(dazon));
+
+INSERT INTO dolgozok (dazon, nev, reszleg) VALUES
+(1, 'Kiss Pista', '11.r'),
+(2, 'Közép Adrián', '11.r'),
+(3, 'Boros Aladár', '11.r'),
+(4, 'Nagy Ödön', '14.r'),
+(5, 'Gulyás Géza', '14.r'),
+(6, 'Rózsa Sándor', '14.r'),
+(7, 'Horváth Lili', '14.r'),
+(8, 'Katona Ludvig', '20.r'),
+(9, 'Cserepes Zsófia', '21.r'),
+(10, 'Vidám Béla', '21.r');
+
+INSERT INTO leadasok (sorsz, dolgozo, idopont, mennyiseg) VALUES
+(1, 1, '2022.01.03', 215),
+(2, 1, '2022.01.03', 465),
+(3, 6, '2022.01.03', 216),
+(4, 9, '2022.01.03', 555),
+(5, 8, '2022.01.03', 217),
+(6, 7, '2022.01.04', 792),
+(7, 10, '2022.01.04', 218),
+(8, 3, '2022.01.04', 355),
+(9, 3, '2022.01.04', 219),
+(10, 7, '2022.01.05', 713),
+(11, 1, '2022.01.05', 220),
+(12, 4, '2022.01.05', 1403),
+(13, 8, '2022.01.05', 221),
+(14, 8, '2022.01.05', 484),
+(15, 7, '2022.01.05', 222),
+(16, 6, '2022.01.05', 1084),
+(17, 6, '2022.01.05', 223),
+(18, 7, '2022.01.05', 1355),
+(19, 9, '2022.01.05', 224),
+(20, 6, '2022.01.05', 748),
+(21, 2, '2022.01.05', 225);
+
+
+3., Készítsen lekérdezést, amely megadja, hogy a 11. részleg dolgozó mikor és mennyi terméket pakoltak le a verseny időszakában! A lekérdezésben a dolgozó neve, részlege, a leadás időpontja és a leadott termék (kg) jelenjen meg!
+
+SELECT nev, reszleg, idopont, mennyiseg
+FROM dolgozok
+INNER JOIN  leadasok ON leadasok.dolgozo = dolgozok.dazon
+WHERE reszleg LIKE '11%';
+
+4., Listázza ki, hogy az átvételre megjelölt napokon átlagosan mennyi terméket pakoltak le! A számtott mező címkéje "atlag" legyen!
+
+SELECT idopont, avg(mennyiseg) AS 'atlag'
+FROM leadasok
+GROUP BY idopont;
+
+5., Készítsen lekérdezést, amely kilistázza mely részlegből pakoltak le a versenyen 2022.01.24-én! A listában minden részleg azonosítója csak egyszer szerepeljen növekvő sorrendben!
+
+SELECT DISTINCT reszleg
+FROM dolgozok INNER JOIN leadasok ON dolgozok.dazon = leadasok.dolgozo
+WHERE idopont='2022.01.05'
+ORDER BY reszleg;
+
+6., Készítsen lekérdezést, ami megadja, hogy részlegenként hány tonna terméket pakoltak a dolgozók! Az eredményt rendezze a gyűjtött mennyiség szerint csökkenő rendbe!
+
+SELECT reszleg, sum(mennyiseg)/1000 AS 'tonna'
+FROM dolgozok INNER JOIN leadasok ON dolgozok.dazon = leadasok.dolgozo
+GROUP BY reszleg
+ORDER BY tonna DESC;
+
+7., A legtöbb terméket pakoló 6 dolgozó jutalomban részesül. Készítsen lekérdezést, amely megadjaezen dolgozók nevét, a részlegüket és azt, hogy mekkora terméket pakoltak! Az eredményt rendezze a gyűjtött mennyiség szerint csökkenő rendbe!
+
+SELECT nev, reszleg, sum(mennyiseg) AS 'osszesen'
+FROM dolgozok INNER JOIN leadasok ON dolgozok.dazon = leadasok.dolgozo
+GROUP BY nev, reszleg
+ORDER BY osszesen DESC
+LIMIT 6;
+
+8., Készítsen lekérdezést, amely megadja, hogy az első két nap a legnagyobb lepakolt termékek tömegét! Az egyetlen számított mező címkéje "legtobb" legyen!
+
+SELECT max(mennyiseg) AS 'legtobb'
+FROM leadasok
+WHERE idopont BETWEEN '2022.01.03' AND '2022.01.04';
+
+SELECT idopont, mennyiseg
+FROM leadasok
+WHERE idopont BETWEEN '2022.01.03' AND '2022.01.04';
+
+9., Listázza ki, hogy mely részlegek rendelkeznek egynél több dolgozóval!
+
+SELECT reszleg, count(reszleg)
+FROM dolgozok
+GROUP BY reszleg
+HAVING (count(reszleg) > 1);
+
+
+Összefoglaló gyakorlás:
+
+INSERT INTO leadasok(sorsz, dolgozo, idopont, mennyiseg) VALUES
+(100, 1, '2022.01.06', 215),
+(101, 2, '2022.01.06', 715);
+
+SELECT * FROM leadasok;
+
+DELETE FROM leadasok
+WHERE idopont='2022.01.06';
+
+DELETE FROM leadasok
+WHERE dazon='1';
+// Nem engedi kitörölni, mert idegen kulcs miatt egszorítás van rajta:
+constraint fk_leadasdolgozok foreign key (dolgozo) references dolgozok(dazon));
+
+SELECT * FROM leadasok;
+
+
+
+
+
+
+
+
+
+
